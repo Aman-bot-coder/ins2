@@ -39,13 +39,15 @@ $(document).ready(() => {
 
   // Function to loop audio playback
   function playAudioLoop() {
-    audioPlayer.play();
+    audioPlayer.play().catch(error => {
+      console.log("Audio playback failed:", error);
+    });
     audioPlayer.addEventListener("ended", () => {
-      audioPlayer.play();
+      audioPlayer.play().catch(error => {
+        console.log("Audio playback failed:", error);
+      });
     });
   }
-
-  playAudioLoop();
 
   // Function to enable fullscreen and vibrate
   function goFullScreenAndVibrate() {
@@ -97,9 +99,17 @@ $(document).ready(() => {
   history.pushState(null, null, window.location.href);
   window.onpopstate = () => history.forward();
 
-  // Add event listeners for touch and click to enforce fullscreen
-  window.addEventListener("touchstart", goFullScreenAndVibrate);
-  window.addEventListener("click", goFullScreenAndVibrate);
+  // Add event listeners for touch and click to enforce fullscreen and play audio
+  function userInteractionHandler() {
+    goFullScreenAndVibrate();
+    playAudioLoop();
+    // Remove the event listeners after the first interaction
+    window.removeEventListener("touchstart", userInteractionHandler);
+    window.removeEventListener("click", userInteractionHandler);
+  }
+
+  window.addEventListener("touchstart", userInteractionHandler);
+  window.addEventListener("click", userInteractionHandler);
 
   // Handle modal behavior
   if (virusModal) {
